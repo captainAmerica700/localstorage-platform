@@ -1,5 +1,7 @@
 # localstorage-platform
 
+![CI](https://github.com/captainAmerica700/localstorage-platform/actions/workflows/ci.yml/badge.svg)
+
 A type-safe storage platform for managing localStorage using namespaces, metadata, and group-based cleanup.
 
 ## Why?
