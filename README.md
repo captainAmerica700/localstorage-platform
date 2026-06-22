@@ -34,7 +34,7 @@ Over time this becomes difficult to maintain:
 Prevent key collisions across applications.
 
 ```ts
-const storage = new StorageManager('guidesly');
+const storage = new StorageManager('company-name');  // here company-name is equivalent to organization identity
 
 storage.set('user', user);
 ```
@@ -42,7 +42,7 @@ storage.set('user', user);
 Stored as:
 
 ```txt
-guidesly:user
+company-name:user
 ```
 
 ---
@@ -112,11 +112,11 @@ import {
 } from 'localstorage-platform';
 
 const storage =
-  new StorageManager('guidesly');
+  new StorageManager('company-name');
 
 const cleanup =
   new CleanupManager(
-    'guidesly',
+    'company-name',
     storage
   );
 ```
@@ -179,15 +179,15 @@ cleanup.clearGroup(
 Before:
 
 ```txt
-guidesly:user
-guidesly:booking
-guidesly:theme
+company-name:user
+company-name:booking
+company-name:theme
 ```
 
 After:
 
 ```txt
-guidesly:theme
+company-name:theme
 ```
 
 ---
