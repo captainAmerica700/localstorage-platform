@@ -125,6 +125,100 @@ const cleanup =
 
 ---
 
+## Real-world examples
+
+### Clear session data on logout
+
+Group session-owned keys together so logout cleanup does not remove long-lived preferences.
+
+```ts
+type UserSession = {
+  id: string;
+  email: string;
+};
+
+const storage = new StorageManager('booking-admin');
+const cleanup = new CleanupManager('booking-admin', storage);
+
+storage.set<UserSession>(
+  'user',
+  { id: '42', email: 'jay@example.com' },
+  'session'
+);
+storage.set<string[]>(
+  'permissions',
+  ['bookings:read', 'bookings:write'],
+  'session'
+);
+storage.set('theme', 'dark', 'preferences');
+
+cleanup.clearGroup('session');
+
+const user = storage.get<UserSession>('user'); // null
+const theme = storage.get<'light' | 'dark'>('theme'); // 'dark'
+```
+
+### Persist a theme preference
+
+Store UI preferences in their own group so they survive session cleanup and can be read during app startup.
+
+```ts
+type Theme = 'light' | 'dark';
+
+const storage = new StorageManager('customer-portal');
+
+function saveTheme(theme: Theme): void {
+  storage.set<Theme>('theme', theme, 'preferences');
+}
+
+function loadTheme(): Theme {
+  return storage.get<Theme>('theme') ?? 'light';
+}
+
+saveTheme('dark');
+const theme = loadTheme();
+```
+
+### Use it from React or Next.js
+
+In React or Next.js, call `localStorage`-backed methods from client-side code.
+
+```tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { StorageManager } from 'localstorage-platform';
+
+const storage = new StorageManager('dashboard');
+
+type Theme = 'light' | 'dark';
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>('light');
+
+  useEffect(() => {
+    const storedTheme = storage.get<Theme>('theme');
+
+    if (storedTheme) {
+      setTheme(storedTheme);
+    }
+  }, []);
+
+  function chooseTheme(nextTheme: Theme): void {
+    setTheme(nextTheme);
+    storage.set<Theme>('theme', nextTheme, 'preferences');
+  }
+
+  return (
+    <button onClick={() => chooseTheme(theme === 'light' ? 'dark' : 'light')}>
+      {theme}
+    </button>
+  );
+}
+```
+
+---
+
 ## StorageManager
 
 ### set
