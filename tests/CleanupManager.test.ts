@@ -17,13 +17,17 @@ describe('CleanupManager', () => {
         storage.set(
             'user',
             { id: 1 },
-            'session'
+            {
+                group: 'session'
+            }
         );
 
         storage.set(
             'booking',
             { id: 10 },
-            'session'
+            {
+                group: 'session'
+            }
         );
 
         storage.set(
