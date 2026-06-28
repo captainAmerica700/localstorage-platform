@@ -202,3 +202,149 @@ describe('ttl support', () => {
         ).toBeNull();
     });
 })
+describe('Encryption Support', () => {
+    const storage = new StorageManager(
+        'jaiStudios',
+        {
+            encryption: {
+                secret: 'my-secret-key'
+            }
+        }
+    );
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    it('should encrypt and decrypt a value', () => {
+        storage.set(
+            'token',
+            'abc123',
+            {
+                encrypt: true
+            }
+        );
+
+        const value =
+            storage.get<string>('token');
+
+        expect(value)
+            .toBe('abc123');
+    });
+
+    it('should not store plain text in localStorage', () => {
+        storage.set(
+            'token',
+            'abc123',
+            {
+                encrypt: true
+            }
+        );
+
+        const raw =
+            localStorage.getItem(
+                'jaiStudios:token'
+            );
+
+        expect(raw)
+            .not.toContain('abc123');
+    });
+
+    it('should throw when encryption is enabled without configuration', () => {
+        const storage =
+            new StorageManager(
+                'jaiStudios'
+            );
+
+        expect(() =>
+            storage.set(
+                'token',
+                'abc123',
+                {
+                    encrypt: true
+                }
+            )
+        ).toThrow();
+    });
+
+    it('should fail with an incorrect secret', () => {
+        const storageA =
+            new StorageManager(
+                'app',
+                {
+                    encryption: {
+                        secret: 'secret-one'
+                    }
+                }
+            );
+
+        const storageB =
+            new StorageManager(
+                'app',
+                {
+                    encryption: {
+                        secret: 'secret-two'
+                    }
+                }
+            );
+
+        storageA.set(
+            'token',
+            'abc123',
+            {
+                encrypt: true
+            }
+        );
+
+        expect(() =>
+            storageB.get('token')
+        ).toThrow();
+    });
+
+    it('should preserve metadata for encrypted values', () => {
+        storage.set(
+            'token',
+            'abc123',
+            {
+                encrypt: true,
+                group: 'session'
+            }
+        );
+
+        const metadata =
+            storage.getMetadata(
+                'token'
+            );
+
+        expect(
+            metadata?.encrypt
+        ).toBe(true);
+
+        expect(
+            metadata?.group
+        ).toBe('session');
+    });
+
+    it('should support ttl with encryption', () => {
+        vi.useFakeTimers();
+
+        storage.set(
+            'token',
+            'abc123',
+            {
+                encrypt: true,
+                ttl: 1000
+            }
+        );
+
+        vi.advanceTimersByTime(
+            1001
+        );
+
+        expect(
+            storage.get('token')
+        ).toBeNull();
+
+        vi.useRealTimers();
+    });
+});
