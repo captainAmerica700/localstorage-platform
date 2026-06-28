@@ -1,4 +1,5 @@
-import type { Metadata } from '../types/metadata'
+import { createMetadata, isExpired } from '../types/metadata'
+import type { Metadata, MetadataOptions } from '../types/metadata'
 import type { StorageItem } from '../types/storageItem'
 import { createNamespacedKey } from '../utils/namespace'
 
@@ -17,44 +18,7 @@ export class StorageManager {
         );
     }
 
-    set<T>(
-        key: string,
-        value: T,
-        group?: string
-    ): void {
-        try {
-            const namespacedKey =
-                this.getKey(key);
-
-            const now = Date.now();
-
-            const item: StorageItem<T> = {
-                value,
-                meta: {
-                    type: group ? 'group' : 'single',
-
-                    ...(group && {
-                        group,
-                    }),
-
-                    createdAt: now,
-
-                    updatedAt: now,
-                }
-            };
-
-            localStorage.setItem(
-                namespacedKey,
-                JSON.stringify(item)
-            );
-        } catch (err) {
-            console.error('[StorageManager:set]', err)
-        }
-    }
-
-    get<T>(
-        key: string
-    ): T | null {
+    private getStorageItem<T>(key: string): StorageItem<T> | null {
         const namespacedKey =
             this.getKey(key);
 
@@ -70,47 +34,59 @@ export class StorageManager {
         try {
             const parsed: StorageItem<T> =
                 JSON.parse(item);
-
-            return parsed.value;
+            if (isExpired(parsed.meta)) {
+                this.remove(key)
+                return null
+            }
+            return parsed;
         } catch {
             return null;
         }
+    }
+
+    set<T>(
+        key: string,
+        value: T,
+        options: MetadataOptions = {}
+    ): void {
+        try {
+            const namespacedKey =
+                this.getKey(key);
+
+            const meta = createMetadata(options)
+
+            const item: StorageItem<T> = {
+                value,
+                meta
+            };
+
+            localStorage.setItem(
+                namespacedKey,
+                JSON.stringify(item)
+            );
+        } catch (err) {
+            console.error('[StorageManager:set]', err)
+        }
+    }
+
+    get<T>(
+        key: string
+    ): T | null {
+        const item = this.getStorageItem<T>(key)
+        return item?.value ?? null
     }
 
     has(
         key: string
     ): boolean {
-        const namespacedKey =
-            this.getKey(key);
-
-        return localStorage.getItem(
-            namespacedKey
-        ) !== null;
+        return this.getStorageItem(key) !== null
     }
 
     getMetadata(
         key: string
     ): Metadata | null {
-        const namespacedKey =
-            this.getKey(key);
-
-        const item =
-            localStorage.getItem(
-                namespacedKey
-            );
-
-        if (!item) {
-            return null;
-        }
-
-        try {
-            const parsed: StorageItem<unknown> =
-                JSON.parse(item);
-
-            return parsed.meta;
-        } catch {
-            return null;
-        }
+        const item = this.getStorageItem<Metadata>(key)
+        return item?.meta ?? null
     }
 
     remove(

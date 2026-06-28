@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { StorageManager } from '../src/core/StorageManager';
 
 describe('StorageManager', () => {
@@ -57,7 +57,9 @@ describe('StorageManager', () => {
                 id: 1,
                 name: 'Jay'
             },
-            'session'
+            {
+                group: 'session'
+            }
         );
 
         const metadata =
@@ -128,3 +130,75 @@ describe('StorageManager', () => {
         ).toBeNull();
     });
 });
+describe('ttl support', () => {
+    const storage = new StorageManager('jaiStudios');
+    beforeEach(() => {
+        vi.useFakeTimers();
+
+        localStorage.clear();
+    });
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+    it('should create expiresAt when ttl is provided', () => {
+        storage.set(
+            'token',
+            'abc',
+            {
+                ttl: 5000
+            }
+        );
+
+        const metadata =
+            storage.getMetadata('token');
+
+        expect(metadata?.expiresAt)
+            .toBeDefined();
+    });
+    it('should not create expiresAt when ttl is omitted', () => {
+        storage.set(
+            'token',
+            'abc'
+        );
+
+        const metadata =
+            storage.getMetadata('token');
+
+        expect(metadata?.expiresAt)
+            .toBeUndefined();
+    });
+    it('should return null after ttl expires', () => {
+        storage.set(
+            'token',
+            'abc',
+            {
+                ttl: 1000
+            }
+        );
+
+        vi.advanceTimersByTime(1001);
+
+        expect(
+            storage.get('token')
+        ).toBeNull();
+    });
+    it('should remove expired item from localStorage', () => {
+        storage.set(
+            'token',
+            'abc',
+            {
+                ttl: 1000
+            }
+        );
+
+        vi.advanceTimersByTime(1001);
+
+        storage.get('token');
+
+        expect(
+            localStorage.getItem(
+                'jaiStudios:token'
+            )
+        ).toBeNull();
+    });
+})
