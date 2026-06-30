@@ -7,7 +7,17 @@
 `localstorage-platform` is a lightweight, type-safe storage library that helps you organize browser storage with namespaces, metadata, TTL, optional encryption, and group-based cleanup.
 
 Instead of scattering `localStorage` calls across your application, build a storage layer that is predictable, maintainable, and ready to grow with your project.
+---
 
+## 🚀 Interactive Playground
+
+Explore the library in action without installing anything.
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/react-fhubawn2?file=src%2FApp.js,src%2Fstyle.css)
+
+**Live Demo:** https://stackblitz.com/edit/react-fhubawn2?file=src%2FApp.js,src%2Fstyle.css
+
+---
 ---
 
 # Why?
