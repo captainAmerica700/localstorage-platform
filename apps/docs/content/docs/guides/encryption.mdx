@@ -1,0 +1,85 @@
+---
+title: Encryption
+description: Encrypt selected stored values while keeping metadata readable.
+---
+
+# Overview
+
+localstorage-platform supports optional AES encryption for individual stored
+values.
+
+Encryption is configured on `StorageManager` and enabled per write with
+`encrypt: true`.
+
+# Why
+
+Some browser-stored values should not be written as plain text. The library
+lets you encrypt only the values that need it while keeping metadata readable
+for TTL and group cleanup.
+
+# When
+
+Use encryption for temporary client-side values that must be stored in the
+browser and should not appear as plain text in `localStorage`.
+
+Do not treat browser storage as a secure vault. Anything available to client
+JavaScript should still be considered client-accessible.
+
+# How
+
+Create a manager with an encryption secret.
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("company-name", {
+  encryption: {
+    secret: "my-secret-key",
+  },
+});
+```
+
+Write encrypted values by passing `encrypt: true`.
+
+```ts
+storage.set("token", "abc123", {
+  group: "session",
+  encrypt: true,
+});
+
+const token = storage.get<string>("token");
+```
+
+Only the stored value is encrypted. Metadata remains readable.
+
+```json
+{
+  "value": "encrypted-value",
+  "meta": {
+    "type": "group",
+    "group": "session",
+    "encrypt": true,
+    "createdAt": 171111111,
+    "updatedAt": 171111111
+  }
+}
+```
+
+# Best Practices
+
+- Configure encryption before writing encrypted values.
+- Use the same secret when reading encrypted values.
+- Combine encrypted values with `ttl` when the data is temporary.
+- Keep secrets out of source control and static client bundles when possible.
+
+# Common Mistakes
+
+- Passing `encrypt: true` without configuring encryption on `StorageManager`.
+- Reading encrypted values with a manager that has no encryption configuration.
+- Assuming metadata is encrypted. Metadata remains readable by design.
+
+# Related Concepts
+
+- [StorageManager](../api/storage-manager)
+- [Metadata](../concepts/metadata)
+- [TTL](./ttl)

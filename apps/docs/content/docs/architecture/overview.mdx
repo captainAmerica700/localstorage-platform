@@ -1,0 +1,79 @@
+---
+title: Architecture Overview
+description: Understand how localstorage-platform structures browser storage around namespaces, records, and cleanup.
+---
+
+# Overview
+
+localstorage-platform is organized around one idea: the browser gives every
+origin one storage bucket, but applications need ownership boundaries inside
+that bucket.
+
+The library creates those boundaries with namespaced keys and structured
+records.
+
+# Why
+
+Browser storage does not know which feature owns a key, when the value was
+created, whether it belongs to a group, or when it should expire. Without that
+context, cleanup becomes risky and storage logic spreads across the codebase.
+
+# How it works
+
+```txt
+Application code
+      |
+      v
+StorageManager(namespace)
+      |
+      v
+namespace:key -> { value, meta }
+      |
+      v
+localStorage
+```
+
+The `StorageManager` owns reads and writes for one namespace. It serializes a
+record containing the original value and metadata.
+
+The `CleanupManager` scans `localStorage` for keys owned by the same namespace
+and removes either all namespaced keys or only keys with a matching metadata
+group.
+
+# Usage
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("admin-console");
+const cleanup = new CleanupManager("admin-console", storage);
+
+storage.set("active-project", "proj_123", {
+  group: "workspace",
+});
+
+cleanup.clearGroup("workspace");
+```
+
+# Best Practices
+
+- Treat namespaces as application boundaries.
+- Treat groups as lifecycle boundaries inside a namespace.
+- Keep storage access behind small feature modules instead of scattering calls
+  across components.
+- Use metadata inspection for debugging and operational visibility.
+
+# Common Mistakes
+
+- Assuming `clearAll()` clears the whole browser origin. It only clears keys
+  that match the cleanup manager namespace.
+- Using groups as security boundaries. Groups are metadata for organization and
+  cleanup.
+- Using storage as the canonical database for server-owned state.
+
+# Related Concepts
+
+- [Storage Engine](./storage-engine)
+- [Namespaces](../concepts/namespaces)
+- [Metadata](../concepts/metadata)
+- [CleanupManager](../api/cleanup-manager)

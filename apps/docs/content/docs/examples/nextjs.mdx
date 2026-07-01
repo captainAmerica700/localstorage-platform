@@ -1,0 +1,80 @@
+---
+title: Next.js
+description: Use localstorage-platform safely with the Next.js App Router.
+---
+
+# Overview
+
+`localStorage` is only available in the browser. In the Next.js App Router,
+use localstorage-platform from client components or client-only modules.
+
+# Why
+
+Server Components render outside the browser, so they cannot access
+`localStorage`. Keeping storage code in client boundaries prevents runtime
+errors and makes hydration behavior predictable.
+
+# How it works
+
+Add `"use client"` to the component or module that creates and uses the
+storage manager.
+
+# Usage
+
+```tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { StorageManager } from "localstorage-platform";
+
+type SidebarState = {
+  collapsed: boolean;
+};
+
+const storage = new StorageManager("admin-app");
+
+export function SidebarToggle() {
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = storage.get<SidebarState>("sidebar");
+
+    if (stored) {
+      setCollapsed(stored.collapsed);
+    }
+  }, []);
+
+  function toggle() {
+    const next = !collapsed;
+
+    setCollapsed(next);
+    storage.set("sidebar", { collapsed: next }, {
+      group: "preferences",
+    });
+  }
+
+  return (
+    <button type="button" onClick={toggle}>
+      {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    </button>
+  );
+}
+```
+
+# Best Practices
+
+- Keep storage imports out of Server Components.
+- Use client components for controls that read or write browser state.
+- Use defaults during the first render, then hydrate from storage in an effect.
+
+# Common Mistakes
+
+- Creating a manager in a shared module that is imported by server code.
+- Using storage to pass data from the server to the client.
+- Forgetting to handle missing records.
+
+# Related Concepts
+
+- [Installation](../getting-started/installation)
+- [React Example](./react)
+- [StorageManager](../api/storage-manager)

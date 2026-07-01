@@ -1,0 +1,89 @@
+---
+title: Getting Started
+description: Install localstorage-platform and create your first structured browser storage namespace.
+---
+
+# Overview
+
+localstorage-platform is a small TypeScript layer over `localStorage`.
+It stores values under a namespace and adds metadata for grouping,
+expiration, timestamps, and encrypted records.
+
+Use it when browser storage needs to behave like part of your application
+architecture instead of a collection of unrelated string keys.
+
+# Why
+
+Raw `localStorage` is global to an origin. As applications grow, keys from
+different features, tenants, environments, and experiments can collide or
+become hard to remove safely.
+
+localstorage-platform gives each application area a namespace and stores
+structured records with metadata. That makes reads, cleanup, and ownership
+easier to reason about.
+
+# How it works
+
+Create a `StorageManager` with a namespace. Every key written by that manager
+is stored as a namespaced key in `localStorage`.
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("dashboard");
+
+storage.set("theme", "dark");
+storage.get<string>("theme");
+```
+
+Each stored record contains:
+
+- `value`: the value you wrote.
+- `meta`: timestamps and optional group, TTL, and encryption metadata.
+
+# Usage
+
+Start with one namespace per application boundary.
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+type SessionSnapshot = {
+  accountId: string;
+  selectedWorkspaceId: string;
+};
+
+export const sessionStorage = new StorageManager("acme-console");
+
+export function saveSession(snapshot: SessionSnapshot) {
+  sessionStorage.set("session", snapshot, {
+    group: "auth",
+    ttl: 1000 * 60 * 60,
+  });
+}
+
+export function readSession() {
+  return sessionStorage.get<SessionSnapshot>("session");
+}
+```
+
+# Best Practices
+
+- Use stable namespace names such as the product, app, or bounded context.
+- Prefer explicit groups for data that should be cleared together.
+- Add TTL to short-lived state such as auth handoff data or cached responses.
+- Keep secrets out of browser storage unless you have configured encryption and
+  understand the risk profile of client-side storage.
+
+# Common Mistakes
+
+- Using the same namespace for unrelated applications on the same origin.
+- Treating `localStorage` as a source of truth for server-owned data.
+- Forgetting that TTL cleanup happens when a stored item is read.
+
+# Related Concepts
+
+- [Namespaces](../concepts/namespaces)
+- [Metadata](../concepts/metadata)
+- [Groups](../concepts/groups)
+- [StorageManager](../api/storage-manager)

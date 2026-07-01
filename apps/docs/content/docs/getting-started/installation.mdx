@@ -1,0 +1,86 @@
+---
+title: Installation
+description: Add localstorage-platform to a TypeScript, React, or Next.js project.
+---
+
+# Overview
+
+Install the package with your project package manager.
+
+```bash
+pnpm add localstorage-platform
+```
+
+```bash
+npm install localstorage-platform
+```
+
+```bash
+yarn add localstorage-platform
+```
+
+# Why
+
+The package is framework-agnostic. It can be used in plain browser code,
+React components, and Next.js client components as long as `localStorage` is
+available.
+
+# How it works
+
+Import the public classes from the package root.
+
+```ts
+import { StorageManager, CleanupManager } from "localstorage-platform";
+```
+
+`StorageManager` reads and writes namespaced records. `CleanupManager` removes
+records owned by a namespace or group.
+
+# Usage
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+const preferences = new StorageManager("preferences");
+
+preferences.set("density", "compact");
+
+const density = preferences.get<"compact" | "comfortable">("density");
+```
+
+In Next.js App Router, create managers only in client-side modules or inside
+client components because `localStorage` is a browser API.
+
+```tsx
+"use client";
+
+import { StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("billing-console");
+
+export function DensityToggle() {
+  function enableCompactMode() {
+    storage.set("density", "compact");
+  }
+
+  return <button onClick={enableCompactMode}>Use compact density</button>;
+}
+```
+
+# Best Practices
+
+- Keep storage managers close to the feature boundary that owns the data.
+- Use TypeScript types at read sites with `get<T>()`.
+- Avoid constructing managers during server rendering.
+
+# Common Mistakes
+
+- Importing storage code into a server-only Next.js module.
+- Sharing one generic namespace across every feature.
+- Assuming browser storage is available in tests without a DOM environment.
+
+# Related Concepts
+
+- [Quick Start](./quick-start)
+- [React Example](../examples/react)
+- [Next.js Example](../examples/nextjs)

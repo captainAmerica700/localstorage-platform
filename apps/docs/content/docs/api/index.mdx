@@ -1,0 +1,60 @@
+---
+title: API Reference
+description: Public classes and types exported by localstorage-platform.
+---
+
+# Overview
+
+The public API is intentionally small:
+
+- `StorageManager`
+- `CleanupManager`
+- Metadata and storage option types
+
+# Why
+
+Most applications need one place to write, read, inspect, and clear browser
+storage. The API keeps those operations explicit and namespace-aware.
+
+# How it works
+
+Create a `StorageManager` for reads and writes. Create a `CleanupManager` with
+the same namespace when you need grouped or namespace-wide cleanup.
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("commerce");
+const cleanup = new CleanupManager("commerce", storage);
+```
+
+# Usage
+
+```ts
+storage.set("cart", { lineItemIds: ["li_1", "li_2"] }, {
+  group: "checkout",
+  ttl: 1000 * 60 * 30,
+});
+
+const cart = storage.get<{ lineItemIds: string[] }>("cart");
+
+cleanup.clearGroup("checkout");
+```
+
+# Best Practices
+
+- Prefer small wrapper modules around direct manager usage.
+- Treat `null` reads as normal; keys may be missing, expired, or invalid.
+- Keep cleanup namespace and storage namespace identical.
+
+# Common Mistakes
+
+- Calling cleanup with a manager from another namespace.
+- Assuming generic reads perform runtime validation.
+- Using browser storage for data that must be authoritative.
+
+# Related Concepts
+
+- [StorageManager](./storage-manager)
+- [CleanupManager](./cleanup-manager)
+- [Metadata](../concepts/metadata)

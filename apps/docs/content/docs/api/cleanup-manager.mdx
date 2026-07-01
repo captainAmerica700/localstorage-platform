@@ -1,0 +1,73 @@
+---
+title: CleanupManager
+description: Remove grouped records or every record owned by a namespace.
+---
+
+# Overview
+
+`CleanupManager` removes records written under a namespace.
+
+```ts
+import { CleanupManager } from "localstorage-platform";
+```
+
+# Why
+
+Cleanup should be intentional. A logout flow may need to remove session keys
+without deleting preferences. A tenant switch may need to remove every key
+owned by one application namespace without touching another namespace.
+
+# How it works
+
+```ts
+const cleanup = new CleanupManager(namespace, storage);
+```
+
+Constructor parameters:
+
+- `namespace: string`
+- `storage: StorageManager`
+
+Methods:
+
+- `clearGroup(group: string): void`
+- `clearAll(): void`
+
+`clearGroup()` scans namespaced keys and removes records whose metadata group
+matches. `clearAll()` removes all keys owned by the namespace.
+
+# Usage
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("support-console");
+const cleanup = new CleanupManager("support-console", storage);
+
+export function clearSessionStorage() {
+  cleanup.clearGroup("session");
+}
+
+export function clearConsoleStorage() {
+  cleanup.clearAll();
+}
+```
+
+# Best Practices
+
+- Use the same namespace for `StorageManager` and `CleanupManager`.
+- Prefer `clearGroup()` when only one lifecycle should be reset.
+- Reserve `clearAll()` for sign-out, tenant switch, or complete reset flows.
+
+# Common Mistakes
+
+- Expecting `clearAll()` to clear unrelated localStorage keys. It only clears
+  matching namespaced keys.
+- Clearing a group before writing records with group metadata.
+- Passing a storage manager created with a different namespace.
+
+# Related Concepts
+
+- [Groups](../concepts/groups)
+- [Namespaces](../concepts/namespaces)
+- [Quick Start](../getting-started/quick-start)

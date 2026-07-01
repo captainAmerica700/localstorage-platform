@@ -1,0 +1,57 @@
+---
+title: Groups
+description: Group related records so they can be removed together.
+---
+
+# Overview
+
+A group is metadata attached to a stored value. Groups let you remove related
+records without clearing the entire namespace.
+
+# Why
+
+Production applications often need scoped cleanup: remove session state while
+keeping preferences, clear cached responses while keeping drafts, or reset one
+feature without touching another.
+
+# How it works
+
+When a value is written with `group`, its metadata type becomes `group`.
+`CleanupManager.clearGroup(group)` removes namespaced records with matching
+group metadata.
+
+# Usage
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("operator-console");
+const cleanup = new CleanupManager("operator-console", storage);
+
+storage.set("access-token", "token", {
+  group: "session",
+});
+
+storage.set("table-density", "compact", {
+  group: "preferences",
+});
+
+cleanup.clearGroup("session");
+```
+
+# Best Practices
+
+- Name groups by lifecycle: `session`, `cache`, `drafts`, `preferences`.
+- Use `clearGroup()` for logout and feature reset flows.
+- Keep group names stable and documented in the owning feature module.
+
+# Common Mistakes
+
+- Using groups to isolate data across applications. Use namespaces for that.
+- Clearing all namespaced data when only one group changed.
+- Creating highly dynamic group names that are hard to audit.
+
+# Related Concepts
+
+- [Namespaces](./namespaces)
+- [CleanupManager](../api/cleanup-manager)

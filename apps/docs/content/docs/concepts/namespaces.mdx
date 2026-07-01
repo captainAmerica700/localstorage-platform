@@ -1,0 +1,55 @@
+---
+title: Namespaces
+description: Isolate browser storage keys by application or feature boundary.
+---
+
+# Overview
+
+A namespace is the prefix that identifies which `StorageManager` owns a key.
+For example, the namespace `billing` and key `filters` are stored under the
+browser key `billing:filters`.
+
+# Why
+
+`localStorage` is shared by every script on the same origin. Namespaces prevent
+accidental collisions and make cleanup predictable.
+
+# How it works
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+const billingStorage = new StorageManager("billing");
+const supportStorage = new StorageManager("support");
+
+billingStorage.set("filters", { status: "open" });
+
+supportStorage.get("filters"); // null
+```
+
+# Usage
+
+Use namespaces for durable ownership boundaries.
+
+```ts
+export const workspaceStorage = new StorageManager("workspace");
+export const billingStorage = new StorageManager("billing");
+export const onboardingStorage = new StorageManager("onboarding");
+```
+
+# Best Practices
+
+- Use lowercase, stable names that map to products or bounded contexts.
+- Avoid dynamic namespaces unless you need hard isolation per tenant or account.
+- Use a matching namespace when creating `CleanupManager`.
+
+# Common Mistakes
+
+- Using a namespace as a user-facing label.
+- Reusing a namespace across unrelated applications on the same origin.
+- Creating `StorageManager("app")` everywhere without documenting ownership.
+
+# Related Concepts
+
+- [Groups](./groups)
+- [CleanupManager](../api/cleanup-manager)
