@@ -19,7 +19,7 @@ jobs:
           cache: pnpm
 
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install -r
 
       - name: Run Tests
         run: pnpm test:run
