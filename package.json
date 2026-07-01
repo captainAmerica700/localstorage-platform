@@ -7,10 +7,8 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
-    "test:run": "vitest run"
+    "test:run": "pnpm -r test:run",
+    "typecheck": "pnpm -r typecheck"
   },
-  "devDependencies": {
-    "vitest": "^4.1.9"
-  }
+  "devDependencies": {}
 }

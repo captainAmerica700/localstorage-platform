@@ -50,13 +50,11 @@
         "test": "vitest",
         "test:run": "vitest run",
         "build": "tsup",
-        "lint": "tsc --noEmit",
         "prepublishOnly": "pnpm test:run && pnpm build",
         "release:patch": "npm version patch && git push origin main --follow-tags && pnpm publish",
         "release:minor": "npm version minor && git push origin main --follow-tags && pnpm publish",
         "release:major": "npm version major && git push origin main --follow-tags && pnpm publish"
     },
-    "packageManager": "pnpm@10.33.4",
     "devDependencies": {
         "@types/crypto-js": "^4.2.2",
         "@types/node": "^26.0.0",
