@@ -1,0 +1,80 @@
+---
+title: Group Cleanup
+description: Remove related namespaced records without clearing unrelated browser storage.
+---
+
+# Overview
+
+Group cleanup removes stored records that share the same metadata group.
+
+Use `CleanupManager.clearGroup(group)` when related values should be removed
+together.
+
+# Why
+
+Applications often need precise cleanup. Logging out should remove session
+data without deleting preferences. Resetting a workflow should remove drafts
+without touching unrelated cached data.
+
+# When
+
+Use group cleanup when records share a lifecycle:
+
+- `session` for auth-related browser state.
+- `cache` for values that can be recreated.
+- `drafts` for temporary editing state.
+- `preferences` for user-controlled UI settings.
+
+# How
+
+Create `StorageManager` and `CleanupManager` with the same namespace.
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("company-name");
+const cleanup = new CleanupManager("company-name", storage);
+```
+
+Write related values with the same group.
+
+```ts
+storage.set("user", { id: 1, name: "Jay" }, {
+  group: "session",
+});
+
+storage.set("token", "abc123", {
+  group: "session",
+});
+
+storage.set("theme", "dark");
+```
+
+Clear only the grouped records.
+
+```ts
+cleanup.clearGroup("session");
+```
+
+After cleanup, `user` and `token` are removed. `theme` remains because it was
+not part of the `session` group.
+
+# Best Practices
+
+- Use stable group names that describe lifecycle, not UI location.
+- Use `clearGroup()` for logout, reset, and workflow-cancel flows.
+- Use `clearAll()` only when every key in the namespace should be removed.
+- Keep storage and cleanup managers in the same feature module.
+
+# Common Mistakes
+
+- Creating `CleanupManager` with a different namespace than `StorageManager`.
+- Forgetting to pass `group` when writing values that should be cleaned
+  together.
+- Using groups instead of namespaces to separate different applications.
+
+# Related Concepts
+
+- [Groups](../concepts/groups)
+- [CleanupManager](../api/cleanup-manager)
+- [Namespaces](../concepts/namespaces)

@@ -1,0 +1,93 @@
+---
+title: Quick Start
+description: Create a namespaced storage manager, write typed values, and clean them up safely.
+---
+
+# Overview
+
+This guide builds a small production-style preferences store using
+`StorageManager` and `CleanupManager`.
+
+# Why
+
+Preferences are a good fit for browser storage: they are user-scoped,
+read frequently, and usually safe to recreate if removed.
+
+# How it works
+
+The storage manager writes values under a namespace. The cleanup manager uses
+the same namespace to remove all owned keys or only keys in a metadata group.
+
+# Usage
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+type UserPreferences = {
+  colorScheme: "light" | "dark" | "system";
+  tableDensity: "compact" | "comfortable";
+};
+
+const storage = new StorageManager("acme-dashboard");
+const cleanup = new CleanupManager("acme-dashboard", storage);
+
+export function savePreferences(preferences: UserPreferences) {
+  storage.set("preferences", preferences, {
+    group: "settings",
+  });
+}
+
+export function getPreferences() {
+  return storage.get<UserPreferences>("preferences");
+}
+
+export function resetSettings() {
+  cleanup.clearGroup("settings");
+}
+```
+
+Add TTL for data that should expire automatically when read after a deadline.
+
+```ts
+type FeatureFlagSnapshot = {
+  accountId: string;
+  flags: Record<string, boolean>;
+};
+
+storage.set<FeatureFlagSnapshot>(
+  "feature-flags",
+  {
+    accountId: "acct_123",
+    flags: {
+      commandMenu: true,
+      bulkActions: false,
+    },
+  },
+  {
+    group: "cache",
+    ttl: 1000 * 60 * 5,
+  },
+);
+```
+
+# Best Practices
+
+- Model stored values with explicit TypeScript types.
+- Group keys by lifecycle, such as `settings`, `session`, or `cache`.
+- Use `cleanup.clearGroup()` for feature-level reset flows.
+- Use `cleanup.clearAll()` for sign-out or tenant-switch flows.
+
+# Common Mistakes
+
+- Using TTL for data that must be refreshed in the background. Expired records
+  are removed when they are read.
+- Reading with the wrong generic type. TypeScript helps at the call site, but
+  browser storage cannot validate runtime shape by itself.
+- Creating a cleanup manager with a different namespace than its storage
+  manager.
+
+# Related Concepts
+
+- [TTL](../guides/ttl)
+- [Groups](../concepts/groups)
+- [CleanupManager](../api/cleanup-manager)

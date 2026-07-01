@@ -1,0 +1,68 @@
+---
+title: Concepts
+description: The core ideas behind structured browser storage.
+---
+
+# Overview
+
+localstorage-platform is built from a small set of concepts:
+
+- Namespaces isolate keys.
+- Metadata describes stored records.
+- Groups define cleanup boundaries.
+- TTL expires records after a deadline.
+- Cleanup managers remove namespaced records intentionally.
+
+# Why
+
+These concepts make browser storage easier to operate in production code. They
+turn implicit naming conventions into explicit, documented storage behavior.
+
+# How it works
+
+Create one storage manager per namespace. Add metadata options when a value has
+a lifecycle beyond a simple key/value pair.
+
+```ts
+storage.set("session-user", user, {
+  group: "session",
+  ttl: 1000 * 60 * 60,
+});
+```
+
+# Usage
+
+Use concepts together rather than in isolation.
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("customer-portal");
+const cleanup = new CleanupManager("customer-portal", storage);
+
+storage.set("draft-invoice", invoiceDraft, {
+  group: "drafts",
+});
+
+cleanup.clearGroup("drafts");
+```
+
+# Best Practices
+
+- Choose namespace names before writing storage-heavy features.
+- Use groups for data that shares a removal lifecycle.
+- Use TTL for caches and temporary handoff state.
+- Keep storage access in modules with domain-specific function names.
+
+# Common Mistakes
+
+- Creating key names that encode too much behavior instead of using metadata.
+- Clearing all namespaced storage when a group-level cleanup is enough.
+- Writing docs or examples around APIs that are not exported by the package.
+
+# Related Concepts
+
+- [Namespaces](./namespaces)
+- [Metadata](./metadata)
+- [Groups](./groups)
+- [TTL](../guides/ttl)

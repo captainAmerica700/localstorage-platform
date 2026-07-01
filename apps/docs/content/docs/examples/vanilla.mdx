@@ -1,0 +1,65 @@
+---
+title: Vanilla TypeScript
+description: Use localstorage-platform without a UI framework.
+---
+
+# Overview
+
+localstorage-platform works in any browser runtime where `localStorage` is
+available.
+
+# Why
+
+Framework-independent storage modules are useful for design systems, embedded
+widgets, browser-only tools, and migration paths between frameworks.
+
+# How it works
+
+Create the manager in browser code and call it from event handlers or
+application services.
+
+# Usage
+
+```ts
+import { CleanupManager, StorageManager } from "localstorage-platform";
+
+type Draft = {
+  title: string;
+  body: string;
+};
+
+const storage = new StorageManager("editor");
+const cleanup = new CleanupManager("editor", storage);
+
+export function saveDraft(draft: Draft) {
+  storage.set("draft", draft, {
+    group: "drafts",
+  });
+}
+
+export function loadDraft() {
+  return storage.get<Draft>("draft");
+}
+
+export function discardDrafts() {
+  cleanup.clearGroup("drafts");
+}
+```
+
+# Best Practices
+
+- Keep browser storage calls out of pure domain logic.
+- Use typed wrapper functions for each stored record.
+- Clear grouped data when users complete or cancel workflows.
+
+# Common Mistakes
+
+- Calling storage code in non-browser runtimes.
+- Storing large documents that should live in a backend.
+- Reusing one key for multiple incompatible value shapes.
+
+# Related Concepts
+
+- [Quick Start](../getting-started/quick-start)
+- [Groups](../concepts/groups)
+- [CleanupManager](../api/cleanup-manager)

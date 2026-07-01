@@ -1,0 +1,77 @@
+---
+title: React
+description: Use localstorage-platform from React client components and hooks.
+---
+
+# Overview
+
+React applications should keep browser storage access in client-side code and
+hide manager calls behind small hooks or feature modules.
+
+# Why
+
+Direct storage calls inside many components make state ownership difficult to
+track. A hook gives the feature one place to define the namespace, key, type,
+and lifecycle.
+
+# How it works
+
+Create the manager outside the hook, then read and write from effects and event
+handlers.
+
+# Usage
+
+```tsx
+import { useEffect, useState } from "react";
+import { StorageManager } from "localstorage-platform";
+
+type Preferences = {
+  tableDensity: "compact" | "comfortable";
+};
+
+const storage = new StorageManager("analytics-dashboard");
+
+export function usePreferences() {
+  const [preferences, setPreferences] = useState<Preferences>({
+    tableDensity: "comfortable",
+  });
+
+  useEffect(() => {
+    const stored = storage.get<Preferences>("preferences");
+
+    if (stored) {
+      setPreferences(stored);
+    }
+  }, []);
+
+  function updatePreferences(next: Preferences) {
+    setPreferences(next);
+    storage.set("preferences", next, {
+      group: "settings",
+    });
+  }
+
+  return {
+    preferences,
+    updatePreferences,
+  };
+}
+```
+
+# Best Practices
+
+- Read storage after the component mounts.
+- Keep fallback state available for missing or expired records.
+- Keep storage keys and groups close to the feature hook.
+
+# Common Mistakes
+
+- Reading browser storage during server rendering.
+- Assuming every stored value still exists.
+- Writing storage logic directly into unrelated UI components.
+
+# Related Concepts
+
+- [Installation](../getting-started/installation)
+- [Groups](../concepts/groups)
+- [StorageManager](../api/storage-manager)

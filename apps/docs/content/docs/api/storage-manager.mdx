@@ -1,0 +1,113 @@
+---
+title: StorageManager
+description: Read, write, inspect, and remove values in a browser storage namespace.
+---
+
+# Overview
+
+`StorageManager` is the primary API for working with structured browser
+storage.
+
+```ts
+import { StorageManager } from "localstorage-platform";
+```
+
+# Why
+
+It keeps key ownership, metadata creation, expiration checks, and optional
+encryption in one place.
+
+# How it works
+
+```ts
+const storage = new StorageManager(namespace, options);
+```
+
+Constructor parameters:
+
+- `namespace: string`
+- `options?: { encryption?: { secret: string } }`
+
+Methods:
+
+- `set<T>(key: string, value: T, options?: MetadataOptions): void`
+- `get<T>(key: string): T | null`
+- `has(key: string): boolean`
+- `getMetadata(key: string): Metadata | null`
+- `remove(key: string): void`
+
+Metadata options:
+
+```ts
+type MetadataOptions = {
+  group?: string;
+  ttl?: number;
+  encrypt?: boolean;
+};
+```
+
+# Usage
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+type CheckoutState = {
+  cartId: string;
+  step: "shipping" | "payment" | "review";
+};
+
+const storage = new StorageManager("checkout");
+
+export function saveCheckout(state: CheckoutState) {
+  storage.set("state", state, {
+    group: "checkout-flow",
+    ttl: 1000 * 60 * 30,
+  });
+}
+
+export function readCheckout() {
+  return storage.get<CheckoutState>("state");
+}
+
+export function hasCheckoutState() {
+  return storage.has("state");
+}
+```
+
+Encrypted values require encryption configuration on the manager and
+`encrypt: true` on the write.
+
+```ts
+const secureStorage = new StorageManager("session", {
+  encryption: {
+    secret: "replace-with-your-secret-source",
+  },
+});
+
+secureStorage.set("handoff-token", "token-value", {
+  group: "session",
+  encrypt: true,
+  ttl: 1000 * 60 * 10,
+});
+```
+
+# Best Practices
+
+- Use one manager per namespace.
+- Use `get<T>()` with explicit domain types.
+- Keep encryption configuration consistent for reads and writes.
+- Wrap storage calls in domain functions such as `saveCheckout()` and
+  `readCheckout()`.
+
+# Common Mistakes
+
+- Writing encrypted values without configuring encryption. That throws.
+- Reading encrypted values with a manager that has no encryption configuration.
+- Treating `get<T>()` as runtime validation.
+- Forgetting that expired records are removed during reads.
+
+# Related Concepts
+
+- [Metadata](../concepts/metadata)
+- [TTL](../guides/ttl)
+- [Storage Engine](../architecture/storage-engine)

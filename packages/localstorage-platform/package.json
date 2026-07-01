@@ -1,0 +1,74 @@
+{
+    "name": "localstorage-platform",
+    "version": "1.3.0",
+    "description": "Type-safe localStorage management with namespaces, metadata, and group-based cleanup.",
+    "author": "Jai Studios",
+    "license": "MIT",
+    "homepage": "https://github.com/captainAmerica700/localstorage-platform",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/captainAmerica700/localstorage-platform.git"
+    },
+    "bugs": {
+        "url": "https://github.com/captainAmerica700/localstorage-platform/issues"
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "keywords": [
+        "localstorage",
+        "storage",
+        "storage-manager",
+        "typescript",
+        "browser-storage",
+        "web-storage",
+        "cache",
+        "namespace",
+        "metadata",
+        "ttl",
+        "expiration",
+        "encryption",
+        "crypto",
+        "frontend",
+        "state",
+        "persistence"
+    ],
+    "scripts": {
+        "test": "vitest",
+        "test:run": "vitest run",
+        "build": "tsup",
+        "lint": "tsc --noEmit",
+        "prepublishOnly": "pnpm test:run && pnpm build",
+        "release:patch": "npm version patch && git push origin main --follow-tags && pnpm publish",
+        "release:minor": "npm version minor && git push origin main --follow-tags && pnpm publish",
+        "release:major": "npm version major && git push origin main --follow-tags && pnpm publish"
+    },
+    "packageManager": "pnpm@10.33.4",
+    "devDependencies": {
+        "@types/crypto-js": "^4.2.2",
+        "@types/node": "^26.0.0",
+        "jsdom": "^29.1.1",
+        "tsup": "^8.5.1",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.9"
+    },
+    "dependencies": {
+        "crypto-js": "^4.2.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

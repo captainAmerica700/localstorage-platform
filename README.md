@@ -7,6 +7,7 @@
 `localstorage-platform` is a lightweight, type-safe storage library that helps you organize browser storage with namespaces, metadata, TTL, optional encryption, and group-based cleanup.
 
 Instead of scattering `localStorage` calls across your application, build a storage layer that is predictable, maintainable, and ready to grow with your project.
+
 ---
 
 ## 🚀 Interactive Playground

@@ -1,0 +1,78 @@
+---
+title: Storage Engine
+description: Learn how values are stored, read, expired, and removed from localStorage.
+---
+
+# Overview
+
+The storage engine writes JSON records to `localStorage`. Each record contains
+the stored value and metadata created at write time.
+
+# Why
+
+Plain `localStorage.setItem()` stores strings only. Applications usually need
+more structure: typed values, ownership, expiration, and cleanup rules.
+
+# How it works
+
+When you call `set()`, the manager:
+
+- Combines the namespace and key into a namespaced storage key.
+- Creates metadata from the write options.
+- Optionally encrypts the value when encryption is configured and requested.
+- Writes a serialized record to `localStorage`.
+
+When you call `get()`, the manager:
+
+- Reads the namespaced storage key.
+- Parses the stored JSON record.
+- Checks the metadata expiration.
+- Removes and returns `null` for expired records.
+- Decrypts encrypted values when an encryption service is configured.
+
+# Usage
+
+```ts
+import { StorageManager } from "localstorage-platform";
+
+const storage = new StorageManager("reporting");
+
+storage.set(
+  "filters",
+  {
+    dateRange: "last-30-days",
+    regions: ["na", "eu"],
+  },
+  {
+    group: "workspace",
+    ttl: 1000 * 60 * 30,
+  },
+);
+
+const filters = storage.get<{
+  dateRange: string;
+  regions: string[];
+}>("filters");
+```
+
+# Best Practices
+
+- Store values that are useful client-side and safe to recreate.
+- Keep TTL values in milliseconds and name constants clearly.
+- Handle `null` from `get()` as a normal state.
+- Remove stale feature data with `CleanupManager` during sign-out, tenant
+  switches, or destructive reset flows.
+
+# Common Mistakes
+
+- Assuming corrupted JSON throws from `get()`. Invalid records are treated as
+  missing and return `null`.
+- Assuming `updatedAt` changes automatically after creation. Current metadata
+  is created when a value is written.
+- Depending on expired values after a read. Expired records are removed.
+
+# Related Concepts
+
+- [TTL](../guides/ttl)
+- [Metadata](../concepts/metadata)
+- [StorageManager](../api/storage-manager)

@@ -1,0 +1,66 @@
+---
+title: Metadata
+description: Understand the metadata stored alongside every value.
+---
+
+# Overview
+
+Every stored record has metadata. Metadata describes the record type, group,
+timestamps, expiration, and encryption flag.
+
+# Why
+
+Metadata makes browser storage inspectable. Instead of relying on key naming
+conventions, the record carries the context needed for cleanup and expiration.
+
+# How it works
+
+The public metadata shape is:
+
+```ts
+type Metadata = {
+  type: "single" | "group";
+  group?: string;
+  encrypt?: boolean;
+  createdAt: number;
+  updatedAt: number;
+  expiresAt?: number;
+};
+```
+
+The `type` is `group` when you provide a group option and `single` otherwise.
+
+# Usage
+
+```ts
+storage.set("current-user", user, {
+  group: "session",
+  ttl: 1000 * 60 * 60,
+});
+
+const metadata = storage.getMetadata("current-user");
+
+if (metadata?.expiresAt) {
+  console.log("Record expires at", new Date(metadata.expiresAt));
+}
+```
+
+# Best Practices
+
+- Use metadata for operational decisions such as cleanup and debugging.
+- Keep TTLs explicit at the write site.
+- Treat `createdAt`, `updatedAt`, and `expiresAt` as timestamps in
+  milliseconds.
+
+# Common Mistakes
+
+- Assuming metadata validates the runtime shape of `value`.
+- Expecting metadata for missing or expired keys. `getMetadata()` returns
+  `null` when no valid record exists.
+- Relying on `updatedAt` as a change history.
+
+# Related Concepts
+
+- [TTL](../guides/ttl)
+- [Groups](./groups)
+- [Storage Engine](../architecture/storage-engine)

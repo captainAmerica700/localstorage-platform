@@ -1,0 +1,51 @@
+---
+title: TTL
+description: Expire stored records after a fixed amount of time.
+---
+
+# Overview
+
+TTL stands for time to live. In localstorage-platform, TTL is provided in
+milliseconds when writing a value.
+
+# Why
+
+Some browser state should expire automatically: cached responses, temporary
+handoff tokens, in-progress flows, and feature-flag snapshots.
+
+# How it works
+
+When you pass `ttl`, metadata receives an `expiresAt` timestamp. When the value
+is read after that timestamp, the manager removes the record and returns
+`null`.
+
+# Usage
+
+```ts
+const FIVE_MINUTES = 1000 * 60 * 5;
+
+storage.set("feature-flags", flags, {
+  group: "cache",
+  ttl: FIVE_MINUTES,
+});
+
+const flags = storage.get<Record<string, boolean>>("feature-flags");
+```
+
+# Best Practices
+
+- Name TTL constants in milliseconds.
+- Handle `null` reads by refetching or reconstructing state.
+- Use TTL for cache-like data, not for required source-of-truth data.
+
+# Common Mistakes
+
+- Passing seconds instead of milliseconds.
+- Expecting background cleanup. Expired records are removed on read.
+- Using TTL without a fallback path for expired state.
+
+# Related Concepts
+
+- [Metadata](../concepts/metadata)
+- [Storage Engine](../architecture/storage-engine)
+- [StorageManager](../api/storage-manager)
