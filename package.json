@@ -9,5 +9,8 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "test:run": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.9"
   }
 }
