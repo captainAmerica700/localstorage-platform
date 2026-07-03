@@ -23,18 +23,46 @@ encryption in one place.
 const storage = new StorageManager(namespace, options);
 ```
 
-Constructor parameters:
+## Constructor
 
-- `namespace: string`
-- `options?: { encryption?: { secret: string } }`
+```ts
+new StorageManager(namespace: string, options?: StorageManagerOptions)
+```
 
-Methods:
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `namespace` | `string` | Yes | Prefix added to every browser storage key, for example `checkout:state`. |
+| `options` | `StorageManagerOptions` | No | Optional manager configuration. Currently supports `encryption.secret`. |
 
-- `set<T>(key: string, value: T, options?: MetadataOptions): void`
-- `get<T>(key: string): T | null`
-- `has(key: string): boolean`
-- `getMetadata(key: string): Metadata | null`
-- `remove(key: string): void`
+Configuration options:
+
+```ts
+type StorageManagerOptions = {
+  encryption?: {
+    secret: string;
+  };
+};
+```
+
+If `encryption` is provided, values written with `encrypt: true` are AES-encrypted before they are stored. The same secret must be used when reading those values.
+
+## Methods
+
+| Method | Parameters | Returns | Notes |
+| --- | --- | --- | --- |
+| `set<T>()` | `key: string`, `value: T`, `options?: MetadataOptions` | `void` | Writes a namespaced record with metadata. |
+| `get<T>()` | `key: string` | `T \| null` | Returns `null` when the key is missing, expired, or cannot be parsed. |
+| `has()` | `key: string` | `boolean` | Uses the same lookup path as `getMetadata()`, so expired records are removed. |
+| `getMetadata()` | `key: string` | `Metadata \| null` | Returns metadata without decrypting the stored value. |
+| `remove()` | `key: string` | `void` | Removes the namespaced key and logs removal errors to the console. |
+
+### `set<T>()`
+
+```ts
+storage.set<T>(key: string, value: T, options?: MetadataOptions): void;
+```
+
+Options are optional. `ttl` is expressed in milliseconds.
 
 Metadata options:
 
@@ -45,6 +73,42 @@ type MetadataOptions = {
   encrypt?: boolean;
 };
 ```
+
+Throws when `encrypt: true` is passed but the manager was not created with an encryption secret. Browser storage errors, such as quota or unavailable storage, may also surface from `localStorage.setItem()`.
+
+### `get<T>()`
+
+```ts
+storage.get<T>(key: string): T | null;
+```
+
+Returns the stored value as `T`, or `null` if the item does not exist, is expired, or cannot be parsed. The generic type is a TypeScript aid only; it does not validate runtime data.
+
+Throws when the stored record is encrypted but the manager was not created with an encryption secret, or when decryption produces invalid JSON.
+
+### `has()`
+
+```ts
+storage.has(key: string): boolean;
+```
+
+Returns `true` when a non-expired, parseable item exists for the namespaced key. Expired records are removed as part of the lookup.
+
+### `getMetadata()`
+
+```ts
+storage.getMetadata(key: string): Metadata | null;
+```
+
+Returns the metadata block for a stored record, or `null` when the item is missing, expired, or invalid. Encrypted records can still expose metadata because only the `value` field is encrypted.
+
+### `remove()`
+
+```ts
+storage.remove(key: string): void;
+```
+
+Removes the namespaced key. Removal errors are caught and logged with the key context.
 
 # Usage
 
@@ -91,6 +155,29 @@ secureStorage.set("handoff-token", "token-value", {
 });
 ```
 
+# Browser Compatibility
+
+`StorageManager` expects a browser-like environment with `localStorage`. Server-side rendering, Node.js, private browsing modes, or blocked storage policies may require guards before creating or using the manager.
+
+# Performance Characteristics
+
+- Each operation targets one namespaced `localStorage` key.
+- `get()`, `has()`, and `getMetadata()` parse the stored JSON record and remove expired records during lookup.
+- Encrypted writes and reads add serialization, AES encryption or decryption, and JSON parsing work.
+- `localStorage` is synchronous, so avoid storing large payloads or calling it in tight render loops.
+
+# Error Conditions
+
+| Operation | Condition | Behavior |
+| --- | --- | --- |
+| `set()` | `encrypt: true` without `options.encryption.secret` | Throws `Error`. |
+| `set()` | Browser rejects `localStorage.setItem()` | Browser exception may propagate. |
+| `get()` | Stored JSON is malformed | Returns `null`. |
+| `get()` | Stored item is expired | Removes the key and returns `null`. |
+| `get()` | Encrypted record read without encryption configuration | Throws `Error`. |
+| `get()` | Decryption output is not valid JSON | Throws from JSON parsing. |
+| `remove()` | Browser rejects removal | Catches the error and logs to `console.error`. |
+
 # Best Practices
 
 - Use one manager per namespace.
@@ -98,6 +185,7 @@ secureStorage.set("handoff-token", "token-value", {
 - Keep encryption configuration consistent for reads and writes.
 - Wrap storage calls in domain functions such as `saveCheckout()` and
   `readCheckout()`.
+- Treat `localStorage` as synchronous browser I/O and keep payloads compact.
 
 # Common Mistakes
 
@@ -105,9 +193,11 @@ secureStorage.set("handoff-token", "token-value", {
 - Reading encrypted values with a manager that has no encryption configuration.
 - Treating `get<T>()` as runtime validation.
 - Forgetting that expired records are removed during reads.
+- Reusing one namespace across unrelated applications or tenants.
 
 # Related Concepts
 
+- [Types](./types)
 - [Metadata](../concepts/metadata)
 - [TTL](../guides/ttl)
 - [Storage Engine](../architecture/storage-engine)

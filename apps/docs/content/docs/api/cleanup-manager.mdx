@@ -23,18 +23,51 @@ owned by one application namespace without touching another namespace.
 const cleanup = new CleanupManager(namespace, storage);
 ```
 
-Constructor parameters:
+## Constructor
 
-- `namespace: string`
-- `storage: StorageManager`
+```ts
+new CleanupManager(namespace: string, storage: StorageManager)
+```
 
-Methods:
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `namespace` | `string` | Yes | Namespace to scan and clean. Use the same namespace as the paired `StorageManager`. |
+| `storage` | `StorageManager` | Yes | Manager used to inspect metadata and remove matching records. |
 
-- `clearGroup(group: string): void`
-- `clearAll(): void`
+## Methods
 
-`clearGroup()` scans namespaced keys and removes records whose metadata group
-matches. `clearAll()` removes all keys owned by the namespace.
+| Method | Parameters | Returns | Notes |
+| --- | --- | --- | --- |
+| `clearGroup()` | `group: string` | `void` | Removes records whose metadata group matches the provided value. |
+| `clearAll()` | None | `void` | Removes every record that belongs to the namespace. |
+
+### `clearGroup()`
+
+```ts
+cleanup.clearGroup(group: string): void;
+```
+
+Scans every key in `localStorage`, filters keys owned by the namespace, reads each matching record's metadata, and removes records with `metadata.group === group`.
+
+Records without group metadata are left untouched. Expired or invalid records may be removed during metadata lookup by the paired `StorageManager`.
+
+### `clearAll()`
+
+```ts
+cleanup.clearAll(): void;
+```
+
+Scans every key in `localStorage`, filters keys owned by the namespace, and removes each matching record.
+
+# Error Conditions
+
+| Operation | Condition | Behavior |
+| --- | --- | --- |
+| `clearGroup()` | `localStorage` is unavailable or blocked | Browser exception may propagate while scanning keys. |
+| `clearGroup()` | A record is malformed or expired | The paired `StorageManager.getMetadata()` returns `null`; expired records are removed. |
+| `clearGroup()` | Removal fails | The paired `StorageManager.remove()` catches and logs the error. |
+| `clearAll()` | `localStorage` is unavailable or blocked | Browser exception may propagate while scanning keys. |
+| `clearAll()` | Removal fails | The paired `StorageManager.remove()` catches and logs the error. |
 
 # Usage
 
@@ -53,11 +86,23 @@ export function clearConsoleStorage() {
 }
 ```
 
+# Browser Compatibility
+
+`CleanupManager` expects a browser-like environment with `localStorage`. It should be called from client-side code, not during server rendering.
+
+# Performance Characteristics
+
+- `clearGroup()` and `clearAll()` iterate through all keys in `localStorage`.
+- Namespaced filtering prevents unrelated keys from being removed.
+- `clearGroup()` also parses metadata for each namespaced record, so it is more expensive than `clearAll()`.
+- Cleanup is synchronous because `localStorage` is synchronous.
+
 # Best Practices
 
 - Use the same namespace for `StorageManager` and `CleanupManager`.
 - Prefer `clearGroup()` when only one lifecycle should be reset.
 - Reserve `clearAll()` for sign-out, tenant switch, or complete reset flows.
+- Use stable group names such as `session`, `checkout`, or `preferences`.
 
 # Common Mistakes
 
@@ -65,9 +110,11 @@ export function clearConsoleStorage() {
   matching namespaced keys.
 - Clearing a group before writing records with group metadata.
 - Passing a storage manager created with a different namespace.
+- Calling cleanup from server-side code where `localStorage` does not exist.
 
 # Related Concepts
 
+- [Types](./types)
 - [Groups](../concepts/groups)
 - [Namespaces](../concepts/namespaces)
 - [Quick Start](../getting-started/quick-start)

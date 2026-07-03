@@ -1,0 +1,118 @@
+---
+title: Types
+description: TypeScript interfaces exported by localstorage-platform.
+---
+
+# Overview
+
+`localstorage-platform` exports the manager classes and the TypeScript types used to configure and describe stored records.
+
+```ts
+import type {
+  EncryptionOptions,
+  Metadata,
+  MetadataOptions,
+  StorageItem,
+  StorageManagerOptions,
+} from "localstorage-platform";
+```
+
+# StorageManagerOptions
+
+```ts
+interface StorageManagerOptions {
+  encryption?: EncryptionOptions;
+}
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `encryption` | `EncryptionOptions` | No | Enables encrypted writes and reads for records written with `encrypt: true`. |
+
+# EncryptionOptions
+
+```ts
+interface EncryptionOptions {
+  secret: string;
+}
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `secret` | `string` | Yes | Secret passed to the AES encryption service. Keep it stable for reads and writes. |
+
+# MetadataOptions
+
+```ts
+interface MetadataOptions {
+  group?: string;
+  ttl?: number;
+  encrypt?: boolean;
+}
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | `string` | No | Lifecycle group used by `CleanupManager.clearGroup()`. |
+| `ttl` | `number` | No | Time to live in milliseconds. `expiresAt` is calculated as `Date.now() + ttl`. |
+| `encrypt` | `boolean` | No | Encrypts only the stored `value` when true. Metadata remains readable. |
+
+# Metadata
+
+```ts
+interface Metadata {
+  type: "single" | "group";
+  group?: string;
+  encrypt?: boolean;
+  createdAt: number;
+  updatedAt: number;
+  expiresAt?: number;
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | `"single" \| "group"` | `group` when a group was provided, otherwise `single`. |
+| `group` | `string \| undefined` | Group name used for grouped cleanup. |
+| `encrypt` | `boolean \| undefined` | Whether the stored value was encrypted. Defaults to `false` on new writes. |
+| `createdAt` | `number` | Creation timestamp in epoch milliseconds. |
+| `updatedAt` | `number` | Update timestamp in epoch milliseconds. Currently set when the record is written. |
+| `expiresAt` | `number \| undefined` | Expiration timestamp in epoch milliseconds when `ttl` was provided. |
+
+# StorageItem
+
+```ts
+interface StorageItem<T = unknown> {
+  value: T;
+  meta: Metadata;
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `value` | `T` | Stored value. It is a string when encrypted. |
+| `meta` | `Metadata` | Metadata used for TTL, encryption state, and cleanup decisions. |
+
+# Common Patterns
+
+```ts
+type Session = {
+  userId: string;
+  role: "admin" | "member";
+};
+
+const options: MetadataOptions = {
+  group: "session",
+  ttl: 1000 * 60 * 60,
+  encrypt: true,
+};
+
+storage.set<Session>("current-user", session, options);
+const restored = storage.get<Session>("current-user");
+```
+
+# Related APIs
+
+- [StorageManager](./storage-manager)
+- [CleanupManager](./cleanup-manager)
+- [Metadata](../concepts/metadata)

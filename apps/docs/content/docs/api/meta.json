@@ -1,4 +1,4 @@
 {
   "title": "API Reference",
-  "pages": ["index", "storage-manager", "cleanup-manager"]
+  "pages": ["index", "storage-manager", "cleanup-manager", "types"]
 }
