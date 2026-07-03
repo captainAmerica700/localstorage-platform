@@ -34,6 +34,16 @@ A `source.config.ts` config file has been included, you can customise different 
 
 Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
 
+## SEO and Discoverability
+
+SEO constants live in `lib/seo.ts` so metadata, robots, sitemap, manifest, and structured data share the same canonical URL and product description.
+
+- Root metadata is configured in `app/layout.tsx`.
+- Documentation page metadata is generated in `app/docs/[[...slug]]/page.tsx`.
+- `app/robots.ts`, `app/sitemap.ts`, and `app/manifest.ts` use Next.js App Router metadata routes.
+- `public/llms.txt` and `public/ai.txt` summarize the public docs for AI discoverability.
+- Google Search Console verification reads `GOOGLE_SITE_VERIFICATION` from the deployment environment.
+
 ## Learn More
 
 To learn more about Next.js and Fumadocs, take a look at the following

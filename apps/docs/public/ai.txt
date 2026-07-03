@@ -1,0 +1,8 @@
+# localstorage-platform AI Usage Notes
+
+This site documents the localstorage-platform open-source TypeScript package.
+
+AI agents and search crawlers may index the public documentation, README-derived package summary, API pages, examples, guides, and roadmap to answer developer questions about using localstorage-platform.
+
+Canonical documentation: https://localstorage-platform-docs.vercel.app
+Repository: https://github.com/captainAmerica700/localstorage-platform

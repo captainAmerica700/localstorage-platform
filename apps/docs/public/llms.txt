@@ -1,0 +1,31 @@
+# localstorage-platform
+
+> Type-safe browser storage for production apps, with namespaces, metadata, TTL, optional encryption, and group-based cleanup.
+
+Documentation: https://localstorage-platform-docs.vercel.app
+Getting started: https://localstorage-platform-docs.vercel.app/docs/getting-started
+API reference: https://localstorage-platform-docs.vercel.app/docs/api
+Repository: https://github.com/captainAmerica700/localstorage-platform
+
+## Core Topics
+
+- Namespace isolation for browser storage keys
+- Metadata stored alongside every value
+- Automatic TTL expiration
+- Optional AES encryption for selected values
+- Group-based cleanup for related records
+- Framework-agnostic TypeScript API
+
+## Package
+
+Install with pnpm:
+
+```bash
+pnpm add localstorage-platform
+```
+
+Install with npm:
+
+```bash
+npm install localstorage-platform
+```
