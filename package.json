@@ -7,6 +7,8 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
+    "test:run": "pnpm -r test:run",
     "typecheck": "pnpm -r typecheck"
-  }
+  },
+  "devDependencies": {}
 }
