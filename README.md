@@ -1,15 +1,5 @@
 # localstorage-platform
 
-![CI](https://github.com/captainAmerica700/localstorage-platform/actions/workflows/ci.yml/badge.svg)
-
-> **The browser gives us storage. This library gives it structure.**
-
-`localstorage-platform` is a lightweight, type-safe storage library that helps you organize browser storage with namespaces, metadata, TTL, optional encryption, and group-based cleanup.
-
-Instead of scattering `localStorage` calls across your application, build a storage layer that is predictable, maintainable, and ready to grow with your project.
-
----
-
 ## 🚀 Interactive Playground
 
 Explore the library in action without installing anything.
@@ -19,6 +9,15 @@ Explore the library in action without installing anything.
 **Live Demo:** https://stackblitz.com/edit/react-fhubawn2?file=src%2FApp.js,src%2Fstyle.css
 
 ---
+
+## 📚 Documentation
+
+Learn how to install, configure, and use **localstorage-platform** with comprehensive guides, API references, architecture, and examples.
+
+**Getting Started:** https://localstorage-platform-docs.vercel.app/docs/getting-started
+
+**Documentation:** https://localstorage-platform-docs.vercel.app
+
 ---
 
 # Why?
