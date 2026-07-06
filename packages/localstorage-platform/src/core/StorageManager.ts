@@ -3,10 +3,12 @@ import { createMetadata, isExpired } from '../types/metadata'
 import type { Metadata, MetadataOptions } from '../types/metadata'
 import type { StorageItem } from '../types/storageItem'
 import type { StorageManagerOptions } from '../types/storagemanager';
-import { createNamespacedKey } from '../utils/namespace'
+import { createNamespacedKey, isNamespacedKey, removeNamespace } from '../utils/namespace'
 
 export class StorageManager {
     private readonly encryptionService?: EncryptionService;
+    private readonly listeners = new Map<string, Set<() => void>>();
+
     constructor(
         private readonly namespace: string,
         options: StorageManagerOptions = {}
@@ -15,7 +17,23 @@ export class StorageManager {
             this.encryptionService =
                 new EncryptionService(options.encryption);
         }
+        if (typeof window !== 'undefined') {
+            window.addEventListener('storage', this.handleStorageEvent);
+        }
     }
+
+    private readonly handleStorageEvent = (event: StorageEvent): void => {
+        if (!event.key) {
+            this.listeners.forEach((_, key) => {
+                this.notify(key);
+            });
+            return;
+        }
+        if (isNamespacedKey(this.namespace, event.key)) {
+            const key = removeNamespace(this.namespace, event.key);
+            this.notify(key);
+        }
+    };
     private getKey(
         key: string
     ): string {
@@ -84,6 +102,7 @@ export class StorageManager {
             JSON.stringify(item)
         );
 
+        this.notify(key);
     }
 
     get<T>(
@@ -129,12 +148,59 @@ export class StorageManager {
             localStorage.removeItem(
                 namespacedKey
             );
+            this.notify(key);
         } catch (error) {
             console.error(
                 `[StorageManager:remove:${key}]`,
                 error
             );
         }
+    }
+
+    subscribe(
+        key: string,
+        listener: () => void
+    ): () => void {
+        let keyListeners = this.listeners.get(key);
+        if (!keyListeners) {
+            keyListeners = new Set<() => void>();
+            this.listeners.set(key, keyListeners);
+        }
+        keyListeners.add(listener);
+        return () => {
+            keyListeners?.delete(listener);
+            if (keyListeners?.size === 0) {
+                this.listeners.delete(key);
+            }
+        };
+    }
+
+    private notify(
+        key: string
+    ): void {
+        const keyListeners = this.listeners.get(key);
+        if (keyListeners) {
+            keyListeners.forEach((listener) => {
+                try {
+                    listener();
+                } catch (error) {
+                    console.error(
+                        `[StorageManager:notify:${key}]`,
+                        error
+                    );
+                }
+            });
+        }
+    }
+
+    destroy(): void {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener(
+                'storage',
+                this.handleStorageEvent
+            );
+        }
+        this.listeners.clear();
     }
 
 }
