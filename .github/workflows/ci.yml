@@ -29,5 +29,8 @@ jobs:
       - name: Run Tests
         run: pnpm -r test:run
 
+      - name: Check Docs Links
+        run: pnpm --filter @localstorage-platform/docs links:check
+
       - name: Build Workspace
         run: pnpm -r build
