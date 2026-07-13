@@ -122,4 +122,44 @@ describe('StorageManager Subscription System', () => {
 
         spyRemoveEvent.mockRestore();
     });
+
+    it('should lazily register and unregister the global storage event listener', () => {
+        const spyAddEvent = vi.spyOn(window, 'addEventListener');
+        const spyRemoveEvent = vi.spyOn(window, 'removeEventListener');
+
+        const listener = vi.fn();
+        
+        spyAddEvent.mockClear();
+        spyRemoveEvent.mockClear();
+
+        const unsubscribe = storage.subscribe('theme', listener);
+        expect(spyAddEvent).toHaveBeenCalledWith('storage', expect.any(Function));
+
+        unsubscribe();
+        expect(spyRemoveEvent).toHaveBeenCalledWith('storage', expect.any(Function));
+
+        spyAddEvent.mockRestore();
+        spyRemoveEvent.mockRestore();
+    });
+
+    it('should share a single window storage event listener between multiple StorageManager instances', () => {
+        const spyAddEvent = vi.spyOn(window, 'addEventListener');
+        
+        const storage2 = new StorageManager('otherNamespace');
+        
+        spyAddEvent.mockClear();
+
+        const unsub1 = storage.subscribe('theme', () => {});
+        expect(spyAddEvent).toHaveBeenCalledTimes(1);
+
+        spyAddEvent.mockClear();
+
+        const unsub2 = storage2.subscribe('theme', () => {});
+        expect(spyAddEvent).not.toHaveBeenCalled();
+
+        unsub1();
+        unsub2();
+
+        spyAddEvent.mockRestore();
+    });
 });
