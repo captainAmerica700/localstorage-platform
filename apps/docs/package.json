@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "prebuild": "pnpm --filter localstorage-platform build",
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
@@ -14,6 +15,7 @@
     "fumadocs-core": "16.8.12",
     "fumadocs-mdx": "15.0.7",
     "fumadocs-ui": "16.8.12",
+    "localstorage-platform": "workspace:*",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "react": "^19.2.6",
