@@ -9,7 +9,11 @@ The public API is intentionally small:
 
 - `StorageManager`
 - `CleanupManager`
-- Metadata and storage option types
+- `StorageManagerOptions`
+- `EncryptionOptions`
+- `MetadataOptions`
+- `Metadata`
+- `StorageItem`
 
 # Why
 
@@ -27,6 +31,18 @@ import { CleanupManager, StorageManager } from "localstorage-platform";
 const storage = new StorageManager("commerce");
 const cleanup = new CleanupManager("commerce", storage);
 ```
+
+Exports:
+
+| Export | Kind | Purpose |
+| --- | --- | --- |
+| `StorageManager` | Class | Writes, reads, checks, inspects, and removes values in a namespace. |
+| `CleanupManager` | Class | Removes grouped records or all records owned by a namespace. |
+| `StorageManagerOptions` | Interface | Configures optional value encryption for a storage manager. |
+| `EncryptionOptions` | Interface | Provides the secret used by the AES encryption service. |
+| `MetadataOptions` | Interface | Controls group, TTL, and encryption behavior for a write. |
+| `Metadata` | Interface | Describes stored record lifecycle metadata. |
+| `StorageItem<T>` | Interface | Internal persisted shape containing `value` and `meta`. |
 
 # Usage
 
@@ -57,4 +73,5 @@ cleanup.clearGroup("checkout");
 
 - [StorageManager](./storage-manager)
 - [CleanupManager](./cleanup-manager)
+- [Types](./types)
 - [Metadata](../concepts/metadata)
